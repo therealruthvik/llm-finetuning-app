@@ -1,0 +1,55 @@
+# ── Env / Secrets ─────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Node / Next.js ────────────────────────────────────────────
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Modal ─────────────────────────────────────────────────────
+.modal/
+
+# ── Model weights (large files) ───────────────────────────────
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+checkpoints/
+/tmp/
+
+# ── Datasets (upload to Supabase, not Git) ────────────────────
+*.csv
+*.jsonl
+devops_dataset.json
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
