@@ -29,13 +29,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { router.push("/"); return; }
+      if (!data.session) {
+        router.push("/");
+        setLoading(false);
+        return;
+      }
       setUserEmail(data.session.user.email ?? "");
+      Promise.all([api.jobs.list(), api.datasets.list()])
+        .then(([j, d]) => { setJobs(j); setDatasets(d); })
+        .catch((err) => console.error(err))
+        .finally(() => setLoading(false));
     });
-    Promise.all([api.jobs.list(), api.datasets.list()])
-      .then(([j, d]) => { setJobs(j); setDatasets(d); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
   }, [router]);
 
   useEffect(() => {
