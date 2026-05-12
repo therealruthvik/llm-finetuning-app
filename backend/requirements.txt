@@ -5,4 +5,5 @@ supabase==2.4.3
 httpx==0.27.0
 python-multipart==0.0.9
 pydantic==2.7.1
+pydantic-core==2.18.2
 modal==0.64.0
