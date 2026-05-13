@@ -258,6 +258,8 @@ def train_model(
 
         # Push to HuggingFace
         reporter.add_log(log_line=f"Pushing to {hf_username}/{hf_repo_name}...")
+        hf_token = hf_token.strip()
+        hf_username = hf_username.strip()
         login(token=hf_token)
         repo_id = f"{hf_username}/{hf_repo_name}"
         model.push_to_hub_merged(repo_id, tokenizer, save_method="lora", token=hf_token)
