@@ -6,7 +6,8 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Depends, Header, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError as JWTError
 import modal
 
 from database import get_db
@@ -43,8 +44,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         payload = jwt.decode(
             token,
             SUPABASE_JWT_SECRET,
-            algorithms=["HS256", "RS256"],
-            options={"verify_aud": False}
+            algorithms=["HS256"],
+            options={"verify_aud": False},
         )
         return payload
     except JWTError as e:
