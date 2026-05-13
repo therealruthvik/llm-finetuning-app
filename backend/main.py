@@ -43,7 +43,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         payload = jwt.decode(
             token,
             SUPABASE_JWT_SECRET,
-            algorithms=["HS256"],
+            algorithms=["HS256", "RS256"],
             options={"verify_aud": False}
         )
         return payload
