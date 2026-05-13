@@ -167,6 +167,11 @@ def delete_dataset(dataset_id: str, user_id: str = Depends(get_user_id)):
 @app.post("/jobs", response_model=JobResponse)
 def create_job(req: CreateJobRequest, user_id: str = Depends(get_user_id)):
     """Create a fine-tuning job and trigger Modal training."""
+    if not req.hf_token.strip():
+        raise HTTPException(400, "HuggingFace token is required")
+    if not req.hf_username.strip():
+        raise HTTPException(400, "HuggingFace username is required")
+
     db = get_db()
 
     # Verify dataset belongs to user

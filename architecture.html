@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FineTune Platform — Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: radial-gradient(ellipse at 30% 20%, #0d0d2b 0%, #060614 40%, #080b1a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      color: white;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 52px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.35);
+      border-radius: 100px;
+      padding: 7px 18px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: #a5b4fc;
+      font-weight: 500;
+    }
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e0e7ff 0%, #818cf8 45%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      line-height: 1.15;
+    }
+    .sub {
+      color: #475569;
+      font-size: 15px;
+    }
+    .diagram-wrap {
+      width: 100%;
+      max-width: 1180px;
+    }
+    svg { width: 100%; height: auto; }
+
+    /* Hover glow on cards */
+    .node-group { cursor: default; }
+    .node-group:hover .card-rect { filter: brightness(1.15); }
+
+    /* Pulse animation on active arrow segments */
+    @keyframes dash {
+      to { stroke-dashoffset: -24; }
+    }
+    .animated-dash {
+      stroke-dasharray: 8 6;
+      animation: dash 1.2s linear infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.4; r: 4; }
+      50% { opacity: 1; r: 6; }
+    }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+    /* Legend */
+    .legend {
+      margin-top: 36px;
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="badge">⚡ FineTune Platform</div>
+    <h1>System Architecture</h1>
+    <p class="sub">Next.js → FastAPI → Modal GPU → HuggingFace Hub</p>
+  </div>
+
+  <div class="diagram-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+         viewBox="0 0 1160 570" role="img" aria-label="Architecture diagram">
+      <defs>
+        <!-- Arrow markers -->
+        <marker id="arr-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#818cf8" opacity="0.85"/>
+        </marker>
+        <marker id="arr-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#3ecf8e" opacity="0.85"/>
+        </marker>
+        <marker id="arr-green-r" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+          <polygon points="10 0, 0 3.5, 10 7" fill="#3ecf8e" opacity="0.85"/>
+        </marker>
+        <marker id="arr-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7" opacity="0.85"/>
+        </marker>
+        <marker id="arr-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#f97316" opacity="0.85"/>
+        </marker>
+
+        <!-- Drop shadow filter -->
+        <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+          <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000000" flood-opacity="0.55"/>
+        </filter>
+        <filter id="shadow-sm" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000000" flood-opacity="0.5"/>
+        </filter>
+        <filter id="glow-indigo" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="10" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+
+        <!-- Background grid -->
+        <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        </pattern>
+
+        <!-- Card gradients -->
+        <linearGradient id="g-browser" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1e2937"/>
+          <stop offset="100%" stop-color="#111827"/>
+        </linearGradient>
+        <linearGradient id="g-nextjs" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1c1c22"/>
+          <stop offset="100%" stop-color="#0c0c10"/>
+        </linearGradient>
+        <linearGradient id="g-fastapi" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#042f2c"/>
+          <stop offset="100%" stop-color="#011f1d"/>
+        </linearGradient>
+        <linearGradient id="g-modal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1e0a4f"/>
+          <stop offset="50%" stop-color="#2d1266"/>
+          <stop offset="100%" stop-color="#16043a"/>
+        </linearGradient>
+        <linearGradient id="g-supabase" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#052e1c"/>
+          <stop offset="100%" stop-color="#021a10"/>
+        </linearGradient>
+        <linearGradient id="g-hf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3b1200"/>
+          <stop offset="100%" stop-color="#291000"/>
+        </linearGradient>
+
+        <!-- Connector line gradients -->
+        <linearGradient id="lg-h1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#64748b"/>
+          <stop offset="100%" stop-color="#818cf8"/>
+        </linearGradient>
+        <linearGradient id="lg-h2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#818cf8"/>
+          <stop offset="100%" stop-color="#818cf8"/>
+        </linearGradient>
+        <linearGradient id="lg-h3" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#818cf8"/>
+          <stop offset="100%" stop-color="#a855f7"/>
+        </linearGradient>
+        <linearGradient id="lg-v1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3ecf8e"/>
+          <stop offset="100%" stop-color="#3ecf8e" stop-opacity="0.5"/>
+        </linearGradient>
+        <linearGradient id="lg-v2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#f97316"/>
+        </linearGradient>
+
+        <!-- Modal inner gradient -->
+        <linearGradient id="g-unsloth" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#4c1d95"/>
+          <stop offset="100%" stop-color="#312e81"/>
+        </linearGradient>
+        <linearGradient id="g-torch" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#7c2d12"/>
+          <stop offset="100%" stop-color="#431407"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Background -->
+      <rect width="1160" height="570" fill="#060614"/>
+      <rect width="1160" height="570" fill="url(#grid)"/>
+
+      <!-- Ambient glow blobs -->
+      <ellipse cx="580" cy="260" rx="400" ry="200" fill="none" stroke="rgba(99,102,241,0.06)" stroke-width="80"/>
+      <ellipse cx="200" cy="420" rx="160" ry="80" fill="rgba(62,207,142,0.04)"/>
+      <ellipse cx="960" cy="420" rx="160" ry="80" fill="rgba(249,115,22,0.04)"/>
+
+      <!-- ══════════════════════════════════════════════
+           CONNECTOR LINES (drawn below nodes)
+      ══════════════════════════════════════════════ -->
+
+      <!-- Browser → Next.js -->
+      <line x1="158" y1="248" x2="200" y2="248"
+            stroke="url(#lg-h1)" stroke-width="2.5" stroke-linecap="round"
+            marker-end="url(#arr-blue)"/>
+      <!-- Animated dash overlay -->
+      <line x1="158" y1="248" x2="200" y2="248"
+            stroke="rgba(129,140,248,0.6)" stroke-width="1.5" stroke-linecap="round"
+            class="animated-dash"/>
+
+      <!-- Next.js → FastAPI -->
+      <line x1="428" y1="248" x2="470" y2="248"
+            stroke="url(#lg-h2)" stroke-width="2.5" stroke-linecap="round"
+            marker-end="url(#arr-blue)"/>
+      <line x1="428" y1="248" x2="470" y2="248"
+            stroke="rgba(129,140,248,0.6)" stroke-width="1.5"
+            class="animated-dash"/>
+
+      <!-- FastAPI → Modal -->
+      <line x1="698" y1="248" x2="745" y2="248"
+            stroke="url(#lg-h3)" stroke-width="2.5" stroke-linecap="round"
+            marker-end="url(#arr-purple)"/>
+      <line x1="698" y1="248" x2="745" y2="248"
+            stroke="rgba(168,85,247,0.6)" stroke-width="1.5"
+            class="animated-dash"/>
+
+      <!-- FastAPI ↔ Supabase (bidirectional) -->
+      <!-- Down arrow -->
+      <path d="M 584 328 L 584 378" stroke="url(#lg-v1)" stroke-width="2.5"
+            stroke-linecap="round" marker-end="url(#arr-green)"/>
+      <!-- Up arrow -->
+      <path d="M 599 378 L 599 328" stroke="url(#lg-v1)" stroke-width="2.5"
+            stroke-linecap="round" marker-end="url(#arr-green)"/>
+      <!-- Animated -->
+      <path d="M 584 328 L 584 378" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
+            class="animated-dash" style="animation-direction:normal"/>
+      <path d="M 599 378 L 599 328" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
+            class="animated-dash" style="animation-delay:-0.6s;animation-direction:normal"/>
+
+      <!-- Modal → HuggingFace -->
+      <path d="M 920 360 L 920 406" stroke="url(#lg-v2)" stroke-width="2.5"
+            stroke-linecap="round" marker-end="url(#arr-orange)"/>
+      <path d="M 920 360 L 920 406" stroke="rgba(249,115,22,0.5)" stroke-width="1.5"
+            class="animated-dash"/>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: BROWSER / USER
+           x=20, y=205, w=138, h=86
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow-sm)">
+        <rect class="card-rect" x="20" y="205" width="138" height="86" rx="14"
+              fill="url(#g-browser)" stroke="#334155" stroke-width="1.5"/>
+        <!-- Icon -->
+        <text x="38" y="244" font-size="28" font-family="Apple Color Emoji, Segoe UI Emoji">🌐</text>
+        <text x="38" y="265" fill="white" font-size="13" font-weight="700" font-family="Inter, sans-serif">Browser</text>
+        <text x="38" y="281" fill="#64748b" font-size="10.5" font-family="Inter, sans-serif">User client</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: NEXT.JS + VERCEL
+           x=200, y=173, w=228, h=150
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow)">
+        <rect class="card-rect" x="200" y="173" width="228" height="150" rx="16"
+              fill="url(#g-nextjs)" stroke="#27272a" stroke-width="1.5"/>
+        <!-- Brand accent line -->
+        <rect x="200" y="173" width="228" height="3" rx="2" fill="#ffffff" opacity="0.7"/>
+
+        <!-- Next.js logo (simpleicons) -->
+        <image href="https://cdn.simpleicons.org/nextdotjs/ffffff" x="218" y="192" width="34" height="34"/>
+        <!-- Vercel logo -->
+        <image href="https://cdn.simpleicons.org/vercel/ffffff" x="262" y="197" width="24" height="24"/>
+
+        <text x="218" y="252" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Next.js 16</text>
+        <text x="218" y="271" fill="#71717a" font-size="11" font-family="Inter, sans-serif">React · TypeScript frontend</text>
+
+        <!-- Vercel deploy badge -->
+        <rect x="218" y="285" width="62" height="22" rx="7" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <text x="228" y="300" fill="#a1a1aa" font-size="10" font-weight="600" font-family="Inter, sans-serif">▲ Vercel</text>
+
+        <!-- Tailwind badge -->
+        <rect x="288" y="285" width="72" height="22" rx="7" fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.25)" stroke-width="1"/>
+        <image href="https://cdn.simpleicons.org/tailwindcss/38bdf8" x="292" y="289" width="14" height="14"/>
+        <text x="310" y="300" fill="#38bdf8" font-size="10" font-weight="600" font-family="Inter, sans-serif">Tailwind</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: FASTAPI + RENDER
+           x=470, y=173, w=228, h=150
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow)">
+        <rect class="card-rect" x="470" y="173" width="228" height="150" rx="16"
+              fill="url(#g-fastapi)" stroke="#134e4a" stroke-width="1.5"/>
+        <!-- Brand accent -->
+        <rect x="470" y="173" width="228" height="3" rx="2" fill="#009688" opacity="0.9"/>
+
+        <!-- FastAPI logo -->
+        <image href="https://cdn.simpleicons.org/fastapi/009688" x="488" y="192" width="34" height="34"/>
+
+        <text x="488" y="252" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">FastAPI</text>
+        <text x="488" y="271" fill="#4d7c78" font-size="11" font-family="Inter, sans-serif">Python REST backend</text>
+
+        <!-- Render badge -->
+        <rect x="488" y="285" width="60" height="22" rx="7" fill="rgba(70,227,183,0.1)" stroke="rgba(70,227,183,0.25)" stroke-width="1"/>
+        <text x="498" y="300" fill="#46e3b7" font-size="10" font-weight="600" font-family="Inter, sans-serif">Render</text>
+
+        <!-- Supabase badge -->
+        <rect x="556" y="285" width="72" height="22" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+        <image href="https://cdn.simpleicons.org/supabase/3ecf8e" x="560" y="289" width="14" height="14"/>
+        <text x="578" y="300" fill="#3ecf8e" font-size="10" font-weight="600" font-family="Inter, sans-serif">+ Auth</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: MODAL GPU TRAINING
+           x=745, y=145, w=355, h=215
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow)">
+        <rect class="card-rect" x="745" y="145" width="355" height="215" rx="16"
+              fill="url(#g-modal)" stroke="#4c1d95" stroke-width="1.5"/>
+        <!-- Brand accent -->
+        <rect x="745" y="145" width="355" height="3" rx="2" fill="#7c3aed"/>
+
+        <!-- Modal "M" logo mark (custom) -->
+        <circle cx="780" cy="182" r="17" fill="rgba(124,58,237,0.3)" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="780" y="188" fill="white" font-size="16" font-weight="800" font-family="Inter, sans-serif" text-anchor="middle">M</text>
+
+        <!-- GPU badge -->
+        <rect x="805" y="168" width="68" height="22" rx="7" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.4)" stroke-width="1"/>
+        <text x="839" y="183" fill="#c084fc" font-size="10" font-weight="700" font-family="Inter, sans-serif" text-anchor="middle">🎮 T4 GPU</text>
+
+        <text x="763" y="226" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Modal</text>
+        <text x="763" y="244" fill="#7c3aed" font-size="11" font-family="Inter, sans-serif" opacity="0.8">Serverless GPU training</text>
+
+        <!-- Divider -->
+        <line x1="763" y1="258" x2="1082" y2="258" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
+        <text x="763" y="272" fill="#6b21a8" font-size="10" font-weight="600" font-family="Inter, sans-serif" letter-spacing="0.05em">TRAINING STACK</text>
+
+        <!-- Unsloth sub-card -->
+        <rect x="763" y="280" width="135" height="66" rx="10" fill="url(#g-unsloth)" stroke="rgba(124,58,237,0.4)" stroke-width="1"/>
+        <text x="780" y="302" font-size="18" font-family="Apple Color Emoji, Segoe UI Emoji">🐍</text>
+        <text x="802" y="303" fill="white" font-size="12" font-weight="700" font-family="Inter, sans-serif">Unsloth</text>
+        <text x="780" y="320" fill="#9f7aea" font-size="10" font-family="Inter, sans-serif">4-bit QLoRA · Fast</text>
+        <rect x="780" y="330" width="88" height="10" rx="4" fill="rgba(124,58,237,0.2)"/>
+        <rect x="780" y="330" width="79" height="10" rx="4" fill="rgba(167,139,250,0.4)"/>
+
+        <!-- PyTorch sub-card -->
+        <rect x="910" y="280" width="172" height="66" rx="10" fill="url(#g-torch)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+        <image href="https://cdn.simpleicons.org/pytorch/ee4c2c" x="928" y="290" width="28" height="28"/>
+        <text x="962" y="305" fill="white" font-size="12" font-weight="700" font-family="Inter, sans-serif">PyTorch 2.3</text>
+        <text x="928" y="330" fill="#f87171" font-size="10" font-family="Inter, sans-serif">bfloat16 · LoRA adapters</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: SUPABASE
+           x=470, y=378, w=228, h=138
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow)">
+        <rect class="card-rect" x="470" y="378" width="228" height="138" rx="16"
+              fill="url(#g-supabase)" stroke="#14532d" stroke-width="1.5"/>
+        <!-- Brand accent -->
+        <rect x="470" y="378" width="228" height="3" rx="2" fill="#3ecf8e" opacity="0.85"/>
+
+        <!-- Supabase logo -->
+        <image href="https://cdn.simpleicons.org/supabase/3ecf8e" x="488" y="396" width="34" height="34"/>
+
+        <text x="488" y="456" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Supabase</text>
+        <text x="488" y="474" fill="#166534" font-size="11" font-family="Inter, sans-serif" opacity="0.9">Auth · PostgreSQL · Storage</text>
+
+        <!-- Feature badges -->
+        <rect x="488" y="484" width="44" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+        <text x="510" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">Auth</text>
+
+        <rect x="538" y="484" width="38" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+        <text x="557" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">DB</text>
+
+        <rect x="582" y="484" width="62" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+        <text x="613" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">Storage</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           NODE: HUGGINGFACE HUB
+           x=800, y=406, w=240, h=120
+      ══════════════════════════════════════════════ -->
+      <g class="node-group" filter="url(#shadow)">
+        <rect class="card-rect" x="800" y="406" width="240" height="120" rx="16"
+              fill="url(#g-hf)" stroke="#7c2d12" stroke-width="1.5"/>
+        <!-- Brand accent -->
+        <rect x="800" y="406" width="240" height="3" rx="2" fill="#ff9d00" opacity="0.9"/>
+
+        <!-- HuggingFace logo -->
+        <image href="https://cdn.simpleicons.org/huggingface/ff9d00" x="820" y="424" width="34" height="34"/>
+
+        <text x="820" y="484" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">HuggingFace Hub</text>
+        <text x="820" y="503" fill="#9a3412" font-size="11" font-family="Inter, sans-serif" opacity="0.9">LoRA model repository</text>
+
+        <!-- Public/private badge -->
+        <rect x="820" y="511" width="80" height="20" rx="6" fill="rgba(255,157,0,0.12)" stroke="rgba(255,157,0,0.3)" stroke-width="1"/>
+        <text x="860" y="525" fill="#fb923c" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">push_to_hub ↑</text>
+      </g>
+
+      <!-- ══════════════════════════════════════════════
+           LABELS ON ARROWS
+      ══════════════════════════════════════════════ -->
+      <!-- Browser→Next.js label -->
+      <rect x="155" y="232" width="48" height="16" rx="5" fill="#0f172a"/>
+      <text x="179" y="244" fill="#64748b" font-size="9" font-family="Inter, sans-serif" text-anchor="middle">HTTPS</text>
+
+      <!-- Next.js→FastAPI label -->
+      <rect x="424" y="232" width="50" height="16" rx="5" fill="#0f172a"/>
+      <text x="449" y="244" fill="#818cf8" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">REST API</text>
+
+      <!-- FastAPI→Modal label -->
+      <rect x="694" y="232" width="54" height="16" rx="5" fill="#0f172a"/>
+      <text x="721" y="244" fill="#a855f7" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">webhook</text>
+
+      <!-- FastAPI↔Supabase label -->
+      <rect x="556" y="346" width="60" height="16" rx="5" fill="#0f172a"/>
+      <text x="586" y="358" fill="#3ecf8e" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">service_role</text>
+
+      <!-- Modal→HF label -->
+      <rect x="890" y="376" width="64" height="16" rx="5" fill="#0f172a"/>
+      <text x="922" y="388" fill="#f97316" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">push model</text>
+
+      <!-- ══════════════════════════════════════════════
+           CONNECTOR PULSE DOTS
+      ══════════════════════════════════════════════ -->
+      <circle class="pulse-dot" cx="179" cy="248" r="4" fill="#818cf8" style="animation-delay:0s"/>
+      <circle class="pulse-dot" cx="449" cy="248" r="4" fill="#818cf8" style="animation-delay:0.4s"/>
+      <circle class="pulse-dot" cx="721" cy="248" r="4" fill="#a855f7" style="animation-delay:0.8s"/>
+      <circle class="pulse-dot" cx="591" cy="353" r="4" fill="#3ecf8e" style="animation-delay:0.2s"/>
+      <circle class="pulse-dot" cx="920" cy="383" r="4" fill="#f97316" style="animation-delay:0.6s"/>
+
+      <!-- ══════════════════════════════════════════════
+           SECTION LABELS
+      ══════════════════════════════════════════════ -->
+      <text x="580" y="22" text-anchor="middle" fill="rgba(255,255,255,0.12)"
+            font-size="11" font-family="Inter, sans-serif" letter-spacing="0.12em" font-weight="600">
+        MAIN REQUEST FLOW  →
+      </text>
+
+      <!-- Flow direction arrows (top decorative) -->
+      <text x="175" y="145" text-anchor="middle" fill="#334155" font-size="22" font-family="Inter, sans-serif">⬇</text>
+      <text x="584" y="118" text-anchor="middle" fill="#1a3a2a" font-size="22" font-family="Inter, sans-serif">⇅</text>
+      <text x="920" y="118" text-anchor="middle" fill="#2d1060" font-size="22" font-family="Inter, sans-serif">⬇</text>
+
+    </svg>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#818cf8"></div>
+      Indigo — HTTP / Auth requests
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#3ecf8e"></div>
+      Green — Supabase DB/Storage reads & writes
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#a855f7"></div>
+      Purple — Modal GPU job dispatch
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f97316"></div>
+      Orange — Model push to HuggingFace Hub
+    </div>
+  </div>
+
+</body>
+</html>

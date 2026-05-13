@@ -160,6 +160,11 @@ def train_model(
     print(f"[{job_id}] Training started on {torch.cuda.get_device_name(0)}")
 
     try:
+        if not hf_token or not hf_token.strip():
+            raise ValueError("HuggingFace token is missing. Set it in Dashboard → Settings before creating a job.")
+        if not hf_username or not hf_username.strip():
+            raise ValueError("HuggingFace username is missing. Set it in Dashboard → Settings before creating a job.")
+
         reporter.update_status("running")
         reporter.add_log(log_line=f"GPU: {torch.cuda.get_device_name(0)}")
 

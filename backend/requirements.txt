@@ -1,8 +1,8 @@
 fastapi
 uvicorn[standard]
 PyJWT[crypto]
-supabase
-httpx
+supabase>=2.3.0,<3.0.0
+httpx>=0.27.0
 python-multipart
 pydantic
 modal
