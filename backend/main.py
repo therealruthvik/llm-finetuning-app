@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt import PyJWTError as JWTError
+from jwt import PyJWKClient
 import modal
 
 from database import get_db
@@ -31,9 +32,12 @@ app.add_middleware(
 
 security = HTTPBearer()
 
-SUPABASE_JWT_SECRET = os.environ["SUPABASE_JWT_SECRET"]
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "")
 MODAL_TOKEN_ID = os.environ.get("MODAL_TOKEN_ID", "")
 MODAL_TOKEN_SECRET = os.environ.get("MODAL_TOKEN_SECRET", "")
+
+_jwks_client = PyJWKClient(f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json")
 
 
 # ── Auth ───────────────────────────────────────────────────────
@@ -41,6 +45,19 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     """Verify Supabase JWT and return user payload."""
     token = credentials.credentials
     try:
+        # Try asymmetric (RS256/ES256) via JWKS first
+        signing_key = _jwks_client.get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256", "ES256"],
+            options={"verify_aud": False},
+        )
+        return payload
+    except Exception:
+        pass
+    try:
+        # Fallback: symmetric HS256 with JWT secret
         payload = jwt.decode(
             token,
             SUPABASE_JWT_SECRET,
