@@ -255,7 +255,7 @@ def train_model(
         reporter.add_log(log_line=f"Pushing to {hf_username}/{hf_repo_name}...")
         login(token=hf_token)
         repo_id = f"{hf_username}/{hf_repo_name}"
-        model.save_pretrained_merged(repo_id, tokenizer, save_method="lora", token=hf_token)
+        model.push_to_hub_merged(repo_id, tokenizer, save_method="lora", token=hf_token)
         hf_repo_url = f"https://huggingface.co/{repo_id}"
         reporter.add_log(log_line=f"Pushed: {hf_repo_url}")
 
