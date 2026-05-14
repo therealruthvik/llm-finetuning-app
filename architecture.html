@@ -94,10 +94,24 @@
       height: 10px;
       border-radius: 50%;
     }
+
+    /* ── Animation system ── */
+    .anim-el {
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    /* HTML elements get a slide too */
+    .anim-slide {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .anim-el.visible   { opacity: 1; }
+    .anim-slide.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
-  <div class="header">
+  <div id="hdr" class="header anim-slide">
     <div class="badge">⚡ FineTune Platform</div>
     <h1>System Architecture</h1>
     <p class="sub">Next.js → FastAPI → Modal GPU → HuggingFace Hub</p>
@@ -201,71 +215,75 @@
         </linearGradient>
       </defs>
 
-      <!-- Background -->
+      <!-- Background (always visible) -->
       <rect width="1160" height="570" fill="#060614"/>
       <rect width="1160" height="570" fill="url(#grid)"/>
 
-      <!-- Ambient glow blobs -->
+      <!-- Ambient glow blobs (always visible) -->
       <ellipse cx="580" cy="260" rx="400" ry="200" fill="none" stroke="rgba(99,102,241,0.06)" stroke-width="80"/>
       <ellipse cx="200" cy="420" rx="160" ry="80" fill="rgba(62,207,142,0.04)"/>
       <ellipse cx="960" cy="420" rx="160" ry="80" fill="rgba(249,115,22,0.04)"/>
 
       <!-- ══════════════════════════════════════════════
-           CONNECTOR LINES (drawn below nodes)
+           CONNECTOR LINES — each wrapped in a group for animation
       ══════════════════════════════════════════════ -->
 
       <!-- Browser → Next.js -->
-      <line x1="158" y1="248" x2="200" y2="248"
-            stroke="url(#lg-h1)" stroke-width="2.5" stroke-linecap="round"
-            marker-end="url(#arr-blue)"/>
-      <!-- Animated dash overlay -->
-      <line x1="158" y1="248" x2="200" y2="248"
-            stroke="rgba(129,140,248,0.6)" stroke-width="1.5" stroke-linecap="round"
-            class="animated-dash"/>
+      <g id="l1" class="anim-el">
+        <line x1="158" y1="248" x2="200" y2="248"
+              stroke="url(#lg-h1)" stroke-width="2.5" stroke-linecap="round"
+              marker-end="url(#arr-blue)"/>
+        <line x1="158" y1="248" x2="200" y2="248"
+              stroke="rgba(129,140,248,0.6)" stroke-width="1.5" stroke-linecap="round"
+              class="animated-dash"/>
+      </g>
 
       <!-- Next.js → FastAPI -->
-      <line x1="428" y1="248" x2="470" y2="248"
-            stroke="url(#lg-h2)" stroke-width="2.5" stroke-linecap="round"
-            marker-end="url(#arr-blue)"/>
-      <line x1="428" y1="248" x2="470" y2="248"
-            stroke="rgba(129,140,248,0.6)" stroke-width="1.5"
-            class="animated-dash"/>
+      <g id="l2" class="anim-el">
+        <line x1="428" y1="248" x2="470" y2="248"
+              stroke="url(#lg-h2)" stroke-width="2.5" stroke-linecap="round"
+              marker-end="url(#arr-blue)"/>
+        <line x1="428" y1="248" x2="470" y2="248"
+              stroke="rgba(129,140,248,0.6)" stroke-width="1.5"
+              class="animated-dash"/>
+      </g>
 
       <!-- FastAPI → Modal -->
-      <line x1="698" y1="248" x2="745" y2="248"
-            stroke="url(#lg-h3)" stroke-width="2.5" stroke-linecap="round"
-            marker-end="url(#arr-purple)"/>
-      <line x1="698" y1="248" x2="745" y2="248"
-            stroke="rgba(168,85,247,0.6)" stroke-width="1.5"
-            class="animated-dash"/>
+      <g id="l3" class="anim-el">
+        <line x1="698" y1="248" x2="745" y2="248"
+              stroke="url(#lg-h3)" stroke-width="2.5" stroke-linecap="round"
+              marker-end="url(#arr-purple)"/>
+        <line x1="698" y1="248" x2="745" y2="248"
+              stroke="rgba(168,85,247,0.6)" stroke-width="1.5"
+              class="animated-dash"/>
+      </g>
 
       <!-- FastAPI ↔ Supabase (bidirectional) -->
-      <!-- Down arrow -->
-      <path d="M 584 328 L 584 378" stroke="url(#lg-v1)" stroke-width="2.5"
-            stroke-linecap="round" marker-end="url(#arr-green)"/>
-      <!-- Up arrow -->
-      <path d="M 599 378 L 599 328" stroke="url(#lg-v1)" stroke-width="2.5"
-            stroke-linecap="round" marker-end="url(#arr-green)"/>
-      <!-- Animated -->
-      <path d="M 584 328 L 584 378" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
-            class="animated-dash" style="animation-direction:normal"/>
-      <path d="M 599 378 L 599 328" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
-            class="animated-dash" style="animation-delay:-0.6s;animation-direction:normal"/>
+      <g id="lv1" class="anim-el">
+        <path d="M 584 328 L 584 378" stroke="url(#lg-v1)" stroke-width="2.5"
+              stroke-linecap="round" marker-end="url(#arr-green)"/>
+        <path d="M 599 378 L 599 328" stroke="url(#lg-v1)" stroke-width="2.5"
+              stroke-linecap="round" marker-end="url(#arr-green)"/>
+        <path d="M 584 328 L 584 378" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
+              class="animated-dash" style="animation-direction:normal"/>
+        <path d="M 599 378 L 599 328" stroke="rgba(62,207,142,0.5)" stroke-width="1.5"
+              class="animated-dash" style="animation-delay:-0.6s;animation-direction:normal"/>
+      </g>
 
       <!-- Modal → HuggingFace -->
-      <path d="M 920 360 L 920 406" stroke="url(#lg-v2)" stroke-width="2.5"
-            stroke-linecap="round" marker-end="url(#arr-orange)"/>
-      <path d="M 920 360 L 920 406" stroke="rgba(249,115,22,0.5)" stroke-width="1.5"
-            class="animated-dash"/>
+      <g id="lv2" class="anim-el">
+        <path d="M 920 360 L 920 406" stroke="url(#lg-v2)" stroke-width="2.5"
+              stroke-linecap="round" marker-end="url(#arr-orange)"/>
+        <path d="M 920 360 L 920 406" stroke="rgba(249,115,22,0.5)" stroke-width="1.5"
+              class="animated-dash"/>
+      </g>
 
       <!-- ══════════════════════════════════════════════
            NODE: BROWSER / USER
-           x=20, y=205, w=138, h=86
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow-sm)">
+      <g id="n-browser" class="node-group anim-el" filter="url(#shadow-sm)">
         <rect class="card-rect" x="20" y="205" width="138" height="86" rx="14"
               fill="url(#g-browser)" stroke="#334155" stroke-width="1.5"/>
-        <!-- Icon -->
         <text x="38" y="244" font-size="28" font-family="Apple Color Emoji, Segoe UI Emoji">🌐</text>
         <text x="38" y="265" fill="white" font-size="13" font-weight="700" font-family="Inter, sans-serif">Browser</text>
         <text x="38" y="281" fill="#64748b" font-size="10.5" font-family="Inter, sans-serif">User client</text>
@@ -273,27 +291,17 @@
 
       <!-- ══════════════════════════════════════════════
            NODE: NEXT.JS + VERCEL
-           x=200, y=173, w=228, h=150
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow)">
+      <g id="n-nextjs" class="node-group anim-el" filter="url(#shadow)">
         <rect class="card-rect" x="200" y="173" width="228" height="150" rx="16"
               fill="url(#g-nextjs)" stroke="#27272a" stroke-width="1.5"/>
-        <!-- Brand accent line -->
         <rect x="200" y="173" width="228" height="3" rx="2" fill="#ffffff" opacity="0.7"/>
-
-        <!-- Next.js logo (simpleicons) -->
         <image href="https://cdn.simpleicons.org/nextdotjs/ffffff" x="218" y="192" width="34" height="34"/>
-        <!-- Vercel logo -->
         <image href="https://cdn.simpleicons.org/vercel/ffffff" x="262" y="197" width="24" height="24"/>
-
         <text x="218" y="252" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Next.js 16</text>
         <text x="218" y="271" fill="#71717a" font-size="11" font-family="Inter, sans-serif">React · TypeScript frontend</text>
-
-        <!-- Vercel deploy badge -->
         <rect x="218" y="285" width="62" height="22" rx="7" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
         <text x="228" y="300" fill="#a1a1aa" font-size="10" font-weight="600" font-family="Inter, sans-serif">▲ Vercel</text>
-
-        <!-- Tailwind badge -->
         <rect x="288" y="285" width="72" height="22" rx="7" fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.25)" stroke-width="1"/>
         <image href="https://cdn.simpleicons.org/tailwindcss/38bdf8" x="292" y="289" width="14" height="14"/>
         <text x="310" y="300" fill="#38bdf8" font-size="10" font-weight="600" font-family="Inter, sans-serif">Tailwind</text>
@@ -301,25 +309,16 @@
 
       <!-- ══════════════════════════════════════════════
            NODE: FASTAPI + RENDER
-           x=470, y=173, w=228, h=150
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow)">
+      <g id="n-fastapi" class="node-group anim-el" filter="url(#shadow)">
         <rect class="card-rect" x="470" y="173" width="228" height="150" rx="16"
               fill="url(#g-fastapi)" stroke="#134e4a" stroke-width="1.5"/>
-        <!-- Brand accent -->
         <rect x="470" y="173" width="228" height="3" rx="2" fill="#009688" opacity="0.9"/>
-
-        <!-- FastAPI logo -->
         <image href="https://cdn.simpleicons.org/fastapi/009688" x="488" y="192" width="34" height="34"/>
-
         <text x="488" y="252" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">FastAPI</text>
         <text x="488" y="271" fill="#4d7c78" font-size="11" font-family="Inter, sans-serif">Python REST backend</text>
-
-        <!-- Render badge -->
         <rect x="488" y="285" width="60" height="22" rx="7" fill="rgba(70,227,183,0.1)" stroke="rgba(70,227,183,0.25)" stroke-width="1"/>
         <text x="498" y="300" fill="#46e3b7" font-size="10" font-weight="600" font-family="Inter, sans-serif">Render</text>
-
-        <!-- Supabase badge -->
         <rect x="556" y="285" width="72" height="22" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
         <image href="https://cdn.simpleicons.org/supabase/3ecf8e" x="560" y="289" width="14" height="14"/>
         <text x="578" y="300" fill="#3ecf8e" font-size="10" font-weight="600" font-family="Inter, sans-serif">+ Auth</text>
@@ -327,38 +326,25 @@
 
       <!-- ══════════════════════════════════════════════
            NODE: MODAL GPU TRAINING
-           x=745, y=145, w=355, h=215
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow)">
+      <g id="n-modal" class="node-group anim-el" filter="url(#shadow)">
         <rect class="card-rect" x="745" y="145" width="355" height="215" rx="16"
               fill="url(#g-modal)" stroke="#4c1d95" stroke-width="1.5"/>
-        <!-- Brand accent -->
         <rect x="745" y="145" width="355" height="3" rx="2" fill="#7c3aed"/>
-
-        <!-- Modal "M" logo mark (custom) -->
         <circle cx="780" cy="182" r="17" fill="rgba(124,58,237,0.3)" stroke="#7c3aed" stroke-width="1.5"/>
         <text x="780" y="188" fill="white" font-size="16" font-weight="800" font-family="Inter, sans-serif" text-anchor="middle">M</text>
-
-        <!-- GPU badge -->
         <rect x="805" y="168" width="68" height="22" rx="7" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.4)" stroke-width="1"/>
         <text x="839" y="183" fill="#c084fc" font-size="10" font-weight="700" font-family="Inter, sans-serif" text-anchor="middle">🎮 T4 GPU</text>
-
         <text x="763" y="226" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Modal</text>
         <text x="763" y="244" fill="#7c3aed" font-size="11" font-family="Inter, sans-serif" opacity="0.8">Serverless GPU training</text>
-
-        <!-- Divider -->
         <line x1="763" y1="258" x2="1082" y2="258" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
         <text x="763" y="272" fill="#6b21a8" font-size="10" font-weight="600" font-family="Inter, sans-serif" letter-spacing="0.05em">TRAINING STACK</text>
-
-        <!-- Unsloth sub-card -->
         <rect x="763" y="280" width="135" height="66" rx="10" fill="url(#g-unsloth)" stroke="rgba(124,58,237,0.4)" stroke-width="1"/>
         <text x="780" y="302" font-size="18" font-family="Apple Color Emoji, Segoe UI Emoji">🐍</text>
         <text x="802" y="303" fill="white" font-size="12" font-weight="700" font-family="Inter, sans-serif">Unsloth</text>
         <text x="780" y="320" fill="#9f7aea" font-size="10" font-family="Inter, sans-serif">4-bit QLoRA · Fast</text>
         <rect x="780" y="330" width="88" height="10" rx="4" fill="rgba(124,58,237,0.2)"/>
         <rect x="780" y="330" width="79" height="10" rx="4" fill="rgba(167,139,250,0.4)"/>
-
-        <!-- PyTorch sub-card -->
         <rect x="910" y="280" width="172" height="66" rx="10" fill="url(#g-torch)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
         <image href="https://cdn.simpleicons.org/pytorch/ee4c2c" x="928" y="290" width="28" height="28"/>
         <text x="962" y="305" fill="white" font-size="12" font-weight="700" font-family="Inter, sans-serif">PyTorch 2.3</text>
@@ -367,48 +353,32 @@
 
       <!-- ══════════════════════════════════════════════
            NODE: SUPABASE
-           x=470, y=378, w=228, h=138
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow)">
+      <g id="n-supa" class="node-group anim-el" filter="url(#shadow)">
         <rect class="card-rect" x="470" y="378" width="228" height="138" rx="16"
               fill="url(#g-supabase)" stroke="#14532d" stroke-width="1.5"/>
-        <!-- Brand accent -->
         <rect x="470" y="378" width="228" height="3" rx="2" fill="#3ecf8e" opacity="0.85"/>
-
-        <!-- Supabase logo -->
         <image href="https://cdn.simpleicons.org/supabase/3ecf8e" x="488" y="396" width="34" height="34"/>
-
         <text x="488" y="456" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">Supabase</text>
         <text x="488" y="474" fill="#166534" font-size="11" font-family="Inter, sans-serif" opacity="0.9">Auth · PostgreSQL · Storage</text>
-
-        <!-- Feature badges -->
         <rect x="488" y="484" width="44" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
         <text x="510" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">Auth</text>
-
         <rect x="538" y="484" width="38" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
         <text x="557" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">DB</text>
-
         <rect x="582" y="484" width="62" height="20" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
         <text x="613" y="498" fill="#4ade80" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">Storage</text>
       </g>
 
       <!-- ══════════════════════════════════════════════
            NODE: HUGGINGFACE HUB
-           x=800, y=406, w=240, h=120
       ══════════════════════════════════════════════ -->
-      <g class="node-group" filter="url(#shadow)">
+      <g id="n-hf" class="node-group anim-el" filter="url(#shadow)">
         <rect class="card-rect" x="800" y="406" width="240" height="120" rx="16"
               fill="url(#g-hf)" stroke="#7c2d12" stroke-width="1.5"/>
-        <!-- Brand accent -->
         <rect x="800" y="406" width="240" height="3" rx="2" fill="#ff9d00" opacity="0.9"/>
-
-        <!-- HuggingFace logo -->
         <image href="https://cdn.simpleicons.org/huggingface/ff9d00" x="820" y="424" width="34" height="34"/>
-
         <text x="820" y="484" fill="white" font-size="15" font-weight="700" font-family="Inter, sans-serif">HuggingFace Hub</text>
         <text x="820" y="503" fill="#9a3412" font-size="11" font-family="Inter, sans-serif" opacity="0.9">LoRA model repository</text>
-
-        <!-- Public/private badge -->
         <rect x="820" y="511" width="80" height="20" rx="6" fill="rgba(255,157,0,0.12)" stroke="rgba(255,157,0,0.3)" stroke-width="1"/>
         <text x="860" y="525" fill="#fb923c" font-size="9.5" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">push_to_hub ↑</text>
       </g>
@@ -416,60 +386,57 @@
       <!-- ══════════════════════════════════════════════
            LABELS ON ARROWS
       ══════════════════════════════════════════════ -->
-      <!-- Browser→Next.js label -->
-      <rect x="155" y="232" width="48" height="16" rx="5" fill="#0f172a"/>
-      <text x="179" y="244" fill="#64748b" font-size="9" font-family="Inter, sans-serif" text-anchor="middle">HTTPS</text>
+      <g id="lbls" class="anim-el">
+        <rect x="155" y="232" width="48" height="16" rx="5" fill="#0f172a"/>
+        <text x="179" y="244" fill="#64748b" font-size="9" font-family="Inter, sans-serif" text-anchor="middle">HTTPS</text>
 
-      <!-- Next.js→FastAPI label -->
-      <rect x="424" y="232" width="50" height="16" rx="5" fill="#0f172a"/>
-      <text x="449" y="244" fill="#818cf8" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">REST API</text>
+        <rect x="424" y="232" width="50" height="16" rx="5" fill="#0f172a"/>
+        <text x="449" y="244" fill="#818cf8" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">REST API</text>
 
-      <!-- FastAPI→Modal label -->
-      <rect x="694" y="232" width="54" height="16" rx="5" fill="#0f172a"/>
-      <text x="721" y="244" fill="#a855f7" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">webhook</text>
+        <rect x="694" y="232" width="54" height="16" rx="5" fill="#0f172a"/>
+        <text x="721" y="244" fill="#a855f7" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">webhook</text>
 
-      <!-- FastAPI↔Supabase label -->
-      <rect x="556" y="346" width="60" height="16" rx="5" fill="#0f172a"/>
-      <text x="586" y="358" fill="#3ecf8e" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">service_role</text>
+        <rect x="556" y="346" width="60" height="16" rx="5" fill="#0f172a"/>
+        <text x="586" y="358" fill="#3ecf8e" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">service_role</text>
 
-      <!-- Modal→HF label -->
-      <rect x="890" y="376" width="64" height="16" rx="5" fill="#0f172a"/>
-      <text x="922" y="388" fill="#f97316" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">push model</text>
+        <rect x="890" y="376" width="64" height="16" rx="5" fill="#0f172a"/>
+        <text x="922" y="388" fill="#f97316" font-size="9" font-weight="600" font-family="Inter, sans-serif" text-anchor="middle">push model</text>
+      </g>
 
       <!-- ══════════════════════════════════════════════
            CONNECTOR PULSE DOTS
       ══════════════════════════════════════════════ -->
-      <circle class="pulse-dot" cx="179" cy="248" r="4" fill="#818cf8" style="animation-delay:0s"/>
-      <circle class="pulse-dot" cx="449" cy="248" r="4" fill="#818cf8" style="animation-delay:0.4s"/>
-      <circle class="pulse-dot" cx="721" cy="248" r="4" fill="#a855f7" style="animation-delay:0.8s"/>
-      <circle class="pulse-dot" cx="591" cy="353" r="4" fill="#3ecf8e" style="animation-delay:0.2s"/>
-      <circle class="pulse-dot" cx="920" cy="383" r="4" fill="#f97316" style="animation-delay:0.6s"/>
+      <g id="pdots" class="anim-el">
+        <circle class="pulse-dot" cx="179" cy="248" r="4" fill="#818cf8" style="animation-delay:0s"/>
+        <circle class="pulse-dot" cx="449" cy="248" r="4" fill="#818cf8" style="animation-delay:0.4s"/>
+        <circle class="pulse-dot" cx="721" cy="248" r="4" fill="#a855f7" style="animation-delay:0.8s"/>
+        <circle class="pulse-dot" cx="591" cy="353" r="4" fill="#3ecf8e" style="animation-delay:0.2s"/>
+        <circle class="pulse-dot" cx="920" cy="383" r="4" fill="#f97316" style="animation-delay:0.6s"/>
+      </g>
 
-      <!-- ══════════════════════════════════════════════
-           SECTION LABELS
-      ══════════════════════════════════════════════ -->
-      <text x="580" y="22" text-anchor="middle" fill="rgba(255,255,255,0.12)"
-            font-size="11" font-family="Inter, sans-serif" letter-spacing="0.12em" font-weight="600">
-        MAIN REQUEST FLOW  →
-      </text>
-
-      <!-- Flow direction arrows (top decorative) -->
-      <text x="175" y="145" text-anchor="middle" fill="#334155" font-size="22" font-family="Inter, sans-serif">⬇</text>
-      <text x="584" y="118" text-anchor="middle" fill="#1a3a2a" font-size="22" font-family="Inter, sans-serif">⇅</text>
-      <text x="920" y="118" text-anchor="middle" fill="#2d1060" font-size="22" font-family="Inter, sans-serif">⬇</text>
+      <!-- Section labels -->
+      <g id="seclbls" class="anim-el">
+        <text x="580" y="22" text-anchor="middle" fill="rgba(255,255,255,0.12)"
+              font-size="11" font-family="Inter, sans-serif" letter-spacing="0.12em" font-weight="600">
+          MAIN REQUEST FLOW  →
+        </text>
+        <text x="175" y="145" text-anchor="middle" fill="#334155" font-size="22" font-family="Inter, sans-serif">⬇</text>
+        <text x="584" y="118" text-anchor="middle" fill="#1a3a2a" font-size="22" font-family="Inter, sans-serif">⇅</text>
+        <text x="920" y="118" text-anchor="middle" fill="#2d1060" font-size="22" font-family="Inter, sans-serif">⬇</text>
+      </g>
 
     </svg>
   </div>
 
   <!-- Legend -->
-  <div class="legend">
+  <div id="lgnd" class="legend anim-slide">
     <div class="legend-item">
       <div class="legend-dot" style="background:#818cf8"></div>
       Indigo — HTTP / Auth requests
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#3ecf8e"></div>
-      Green — Supabase DB/Storage reads & writes
+      Green — Supabase DB/Storage reads &amp; writes
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#a855f7"></div>
@@ -481,5 +448,90 @@
     </div>
   </div>
 
+  <script>
+    // Sequence: [id, delay_ms]
+    // Each element fades in after the previous, simulating data flow left→right
+    const SEQ = [
+      ['hdr',      0],
+      ['seclbls',  400],
+      ['n-browser',600],
+      ['l1',       1050],
+      ['n-nextjs', 1400],
+      ['l2',       1850],
+      ['n-fastapi',2200],
+      ['l3',       2650],
+      ['n-modal',  3000],
+      ['lv1',      3500],
+      ['n-supa',   3850],
+      ['lv2',      4200],
+      ['n-hf',     4550],
+      ['lbls',     5000],
+      ['pdots',    5400],
+      ['lgnd',     5800],
+    ];
+
+    const DWELL    = 3500;  // ms fully visible after last element appears
+    const FADEOUT  = 800;   // ms to fade everything out
+    const PAUSE    = 1200;  // ms black before restart
+    const CYCLE    = SEQ[SEQ.length - 1][1] + DWELL + FADEOUT + PAUSE;
+
+    function getEl(id) { return document.getElementById(id); }
+
+    function show(id) {
+      const el = getEl(id);
+      if (!el) return;
+      el.classList.add('visible');
+    }
+
+    function hideAll() {
+      SEQ.forEach(([id]) => {
+        const el = getEl(id);
+        if (!el) return;
+        el.classList.remove('visible');
+      });
+    }
+
+    let timers = [];
+
+    function clearTimers() {
+      timers.forEach(t => clearTimeout(t));
+      timers = [];
+    }
+
+    function runCycle() {
+      clearTimers();
+      hideAll();
+
+      // Sequence entrances
+      SEQ.forEach(([id, delay]) => {
+        timers.push(setTimeout(() => show(id), delay));
+      });
+
+      // Fade out everything near end of cycle
+      const fadeStart = SEQ[SEQ.length - 1][1] + DWELL;
+      timers.push(setTimeout(() => {
+        SEQ.forEach(([id]) => {
+          const el = getEl(id);
+          if (!el) return;
+          el.style.transition = `opacity ${FADEOUT}ms ease, transform ${FADEOUT}ms ease`;
+          el.classList.remove('visible');
+        });
+      }, fadeStart));
+
+      // Restart
+      timers.push(setTimeout(() => {
+        // Reset transitions to fast before next cycle
+        SEQ.forEach(([id]) => {
+          const el = getEl(id);
+          if (!el) return;
+          el.style.transition = '';
+        });
+        runCycle();
+      }, CYCLE));
+    }
+
+    // Start immediately
+    runCycle();
+  </script>
 </body>
 </html>
